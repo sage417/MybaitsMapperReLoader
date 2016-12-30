@@ -1,8 +1,9 @@
 # mybatis xml文件自动加载
 
-###切莫用于生产环境（后果自负）！
+### 切莫用于生产环境（后果自负）！
 
-###使用方式
+### 使用方式
+
     // Java Config 方式
     @Bean
     @Profile("development")
