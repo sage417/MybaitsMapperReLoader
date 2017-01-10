@@ -1,4 +1,4 @@
-package com.lianjia.sh.mybatis.reload.autoconfigure;
+package com.lianjia.sh.mybatis.reload.spring.autoconfigure;
 
 import com.lianjia.sh.mybatis.reload.MybatisXmlMapperAutoReLoader;
 import org.apache.ibatis.session.SqlSessionFactory;

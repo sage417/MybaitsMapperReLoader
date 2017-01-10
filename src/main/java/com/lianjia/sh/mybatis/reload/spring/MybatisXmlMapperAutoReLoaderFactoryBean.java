@@ -1,7 +1,10 @@
-package com.lianjia.sh.mybatis.reload;
+package com.lianjia.sh.mybatis.reload.spring;
 
+import com.lianjia.sh.mybatis.reload.MybatisXmlMapperAutoReLoader;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -16,7 +19,7 @@ import java.util.List;
  * Author: mac
  * Date: 2017/1/10
  */
-public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<MybatisXmlMapperAutoReLoader> {
+public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<MybatisXmlMapperAutoReLoader>, InitializingBean, DisposableBean {
 
     // 是否启用热加载.
     private boolean enableAutoReload = true;
@@ -25,15 +28,16 @@ public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<Myba
     // 多数据源的场景使用
     private SqlSessionFactory sqlSessionFactory;
 
+    private MybatisXmlMapperAutoReLoader mybatisXmlMapperAutoReLoader;
+
     private ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
 
     @Override
     public MybatisXmlMapperAutoReLoader getObject() throws Exception {
-        MybatisXmlMapperAutoReLoader reLoader = new MybatisXmlMapperAutoReLoader();
-        reLoader.setEnableAutoReload(this.enableAutoReload);
-        reLoader.setSqlSessionFactory(this.sqlSessionFactory);
-        reLoader.setMapperResources(this.resolveMapperLocations());
-        return reLoader;
+        if (this.mybatisXmlMapperAutoReLoader == null) {
+            afterPropertiesSet();
+        }
+        return this.mybatisXmlMapperAutoReLoader;
     }
 
     private Resource[] resolveMapperLocations() {
@@ -56,13 +60,29 @@ public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<Myba
     }
 
     @Override
+    public void destroy() throws Exception {
+        if (this.mybatisXmlMapperAutoReLoader != null) {
+            this.mybatisXmlMapperAutoReLoader.destroy();
+        }
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        this.mybatisXmlMapperAutoReLoader = new MybatisXmlMapperAutoReLoader();
+        this.mybatisXmlMapperAutoReLoader.setEnableAutoReload(this.enableAutoReload);
+        this.mybatisXmlMapperAutoReLoader.setSqlSessionFactory(this.sqlSessionFactory);
+        this.mybatisXmlMapperAutoReLoader.setMapperResources(this.resolveMapperLocations());
+        this.mybatisXmlMapperAutoReLoader.init();
+    }
+
+    @Override
     public Class<?> getObjectType() {
         return MybatisXmlMapperAutoReLoader.class;
     }
 
     @Override
     public boolean isSingleton() {
-        return false;
+        return true;
     }
 
     public void setEnableAutoReload(boolean enableAutoReload) {

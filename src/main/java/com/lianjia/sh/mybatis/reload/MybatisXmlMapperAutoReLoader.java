@@ -5,8 +5,6 @@ import com.lianjia.sh.mybatis.reload.scanner.AutoReloadScanner;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
@@ -31,7 +29,7 @@ import java.util.stream.Collectors;
  *
  * @author thomas
  */
-public class MybatisXmlMapperAutoReLoader implements DisposableBean, InitializingBean {
+public class MybatisXmlMapperAutoReLoader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MybatisXmlMapperAutoReLoader.class);
 
@@ -44,8 +42,7 @@ public class MybatisXmlMapperAutoReLoader implements DisposableBean, Initializin
     // 多数据源的场景使用
     private SqlSessionFactory sqlSessionFactory;
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
+    public void init() throws Exception {
 
         // 检查设置
         if (!enableAutoReload) {
@@ -76,7 +73,6 @@ public class MybatisXmlMapperAutoReLoader implements DisposableBean, Initializin
         LOGGER.info("启动mybatis自动热加载");
     }
 
-    @Override
     public void destroy() throws Exception {
         if (this.watchService != null) {
             this.watchService.close();
