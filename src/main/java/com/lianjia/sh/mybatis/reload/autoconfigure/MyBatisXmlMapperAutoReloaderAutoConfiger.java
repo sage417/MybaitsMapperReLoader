@@ -1,6 +1,6 @@
 package com.lianjia.sh.mybatis.reload.autoconfigure;
 
-import com.lianjia.sh.mybatis.reload.MybatisXmlMapperAutoReloader;
+import com.lianjia.sh.mybatis.reload.MybatisXmlMapperAutoReLoader;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -26,8 +26,8 @@ public class MyBatisXmlMapperAutoReloaderAutoConfiger {
 
     @Bean
     @ConditionalOnMissingBean
-    public MybatisXmlMapperAutoReloader sqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
-        MybatisXmlMapperAutoReloader reloader = new MybatisXmlMapperAutoReloader();
+    public MybatisXmlMapperAutoReLoader sqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
+        MybatisXmlMapperAutoReLoader reloader = new MybatisXmlMapperAutoReLoader();
         reloader.setEnableAutoReload(true);
         reloader.setSqlSessionFactory(sqlSessionFactory);
         return reloader;

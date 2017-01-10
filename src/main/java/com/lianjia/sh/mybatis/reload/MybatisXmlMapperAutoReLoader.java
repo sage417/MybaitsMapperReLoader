@@ -9,6 +9,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -34,14 +35,16 @@ import java.util.stream.Collectors;
  *
  * @author thomas
  */
-public class MybatisXmlMapperAutoReloader implements DisposableBean, InitializingBean {
+public class MybatisXmlMapperAutoReLoader implements DisposableBean, InitializingBean {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MybatisXmlMapperAutoReloader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MybatisXmlMapperAutoReLoader.class);
 
     private DirectoryWatchService watchService;
 
+    private ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+
     // 是否启用热加载.
-    private Boolean enableAutoReload = true;
+    private boolean enableAutoReload = true;
     // 指定映射配置文件
     private String[] mapperLocations;
     // 多数据源的场景使用
@@ -62,7 +65,6 @@ public class MybatisXmlMapperAutoReloader implements DisposableBean, Initializin
 
         // 配置扫描器.
         final AutoReloadScanner scanner = new AutoReloadScanner(this.sqlSessionFactory, mapperResources);
-        scanner.start();
 
         Path[] paths = Arrays.stream(mapperResources).map(mapperLocation -> {
             try {
@@ -88,7 +90,7 @@ public class MybatisXmlMapperAutoReloader implements DisposableBean, Initializin
             for (String mapperLocation : this.mapperLocations) {
                 Resource[] mappers;
                 try {
-                    mappers = new PathMatchingResourcePatternResolver().getResources(mapperLocation);
+                    mappers = resourcePatternResolver.getResources(mapperLocation);
                     resources.addAll(Arrays.asList(mappers));
                 } catch (IOException ignored) {
 
@@ -113,7 +115,7 @@ public class MybatisXmlMapperAutoReloader implements DisposableBean, Initializin
      *
      * @param enableAutoReload
      */
-    public void setEnableAutoReload(Boolean enableAutoReload) {
+    public void setEnableAutoReload(boolean enableAutoReload) {
         this.enableAutoReload = enableAutoReload;
     }
 

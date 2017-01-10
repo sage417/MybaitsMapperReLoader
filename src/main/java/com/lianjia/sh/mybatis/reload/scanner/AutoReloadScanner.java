@@ -7,8 +7,6 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.StopWatch;
 
 import java.io.IOException;
@@ -27,17 +25,14 @@ public class AutoReloadScanner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoReloadScanner.class);
 
-
     //
     private SqlSessionFactory sqlSessionFactory;
 
     // 需要扫描的包
     private Resource[] mapperLocations;
 
-    private ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
-
     // 所有文件
-    private Map<String, String> files = new ConcurrentHashMap<>();
+    private Map<Resource, String> files = new ConcurrentHashMap<>();
 
     public AutoReloadScanner(SqlSessionFactory sqlSessionFactory, Resource[] mapperLocations) {
         this.sqlSessionFactory = sqlSessionFactory;
@@ -51,9 +46,8 @@ public class AutoReloadScanner {
         StopWatch sw = new StopWatch("mybatis mapper auto reload");
         sw.start();
         Configuration configuration = getConfiguration();
-        for (Map.Entry<String, String> entry : files.entrySet()) {
-            String location = entry.getKey();
-            Resource r = resourcePatternResolver.getResource(location);
+        for (Map.Entry<Resource, String> entry : files.entrySet()) {
+            Resource r = entry.getKey();
             try {
                 XMLMapperBuilder xmlMapperBuilder = new XMLMapperBuilder(r.getInputStream(), configuration, r.toString(), configuration.getSqlFragments());
                 xmlMapperBuilder.parse();
@@ -89,28 +83,19 @@ public class AutoReloadScanner {
     /**
      * 开启扫描服务
      */
-    public void start() {
+    public void scan() {
         this.files.clear();
         try {
             if (this.mapperLocations != null) {
                 for (Resource r : mapperLocations) {
                     String tag = getTag(r);
-                    files.put(r.getURL().toString(), tag);
+                    files.put(r, tag);
                 }
             }
         } catch (Exception e) {
             throw new RuntimeException("初始化扫描服务失败！", e);
         }
     }
-
-    public SqlSessionFactory getSqlSessionFactory() {
-        return sqlSessionFactory;
-    }
-
-    public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
-        this.sqlSessionFactory = sqlSessionFactory;
-    }
-
 
     /**
      * 获取配置信息，必须每次都重新获取，否则重新加载xml不起作用.
@@ -159,5 +144,4 @@ public class AutoReloadScanner {
         Set setConfig = (Set) field.get(configuration);
         setConfig.clear();
     }
-
 }
