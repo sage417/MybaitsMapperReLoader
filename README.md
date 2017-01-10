@@ -7,14 +7,17 @@
     // Java Config 方式
     @Bean
     @Profile("development")
-    public MybatisXmlMapperAutoReloader mybatisXmlMapperAutoReloader(){
-        MybatisXmlMapperAutoReloader reloader = new MybatisXmlMapperAutoReloader();
-        return reloader;
+    public MybatisXmlMapperAutoReLoaderFactoryBean configMybatisXmlMapperAutoReloader(SqlSessionFactory sqlSessionFactory, MybatisProperties mybatisProperties) {
+        MybatisXmlMapperAutoReLoaderFactoryBean factoryBean = new MybatisXmlMapperAutoReLoaderFactoryBean();
+        factoryBean.setEnableAutoReload(true);
+        factoryBean.setSqlSessionFactory(sqlSessionFactory);
+        factoryBean.setMapperLocations(mybatisProperties.getMapperLocations());
+        return factoryBean;
     }
     
     // xml config 方式
 	<!-- mybatis自动热加载 -->
-	<bean class="com.thomas.mybatis.MybatisXmlMapperAutoReloader" >
+	<bean class="com.thomas.mybatis.MybatisXmlMapperAutoReLoader" >
 		<!-- 设置是否启用: 默认启用 -->
 		<property name="enableAutoReload" value="${mybatis.enableAutoReload}" />
 		<!-- 设置sqlSessionFactory -->
