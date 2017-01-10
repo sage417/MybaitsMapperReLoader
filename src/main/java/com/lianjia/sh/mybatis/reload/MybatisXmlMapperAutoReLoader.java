@@ -8,15 +8,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -41,12 +37,10 @@ public class MybatisXmlMapperAutoReLoader implements DisposableBean, Initializin
 
     private DirectoryWatchService watchService;
 
-    private ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
-
     // 是否启用热加载.
     private boolean enableAutoReload = true;
     // 指定映射配置文件
-    private String[] mapperLocations;
+    private Resource[] mapperResources;
     // 多数据源的场景使用
     private SqlSessionFactory sqlSessionFactory;
 
@@ -60,8 +54,6 @@ public class MybatisXmlMapperAutoReLoader implements DisposableBean, Initializin
         } else {
             LOGGER.info("启用：mybatis自动热加载");
         }
-
-        Resource[] mapperResources = resolveMapperLocations();
 
         // 配置扫描器.
         final AutoReloadScanner scanner = new AutoReloadScanner(this.sqlSessionFactory, mapperResources);
@@ -84,25 +76,6 @@ public class MybatisXmlMapperAutoReLoader implements DisposableBean, Initializin
         LOGGER.info("启动mybatis自动热加载");
     }
 
-    private Resource[] resolveMapperLocations() {
-        List<Resource> resources = new ArrayList<>();
-        if (this.mapperLocations != null) {
-            for (String mapperLocation : this.mapperLocations) {
-                Resource[] mappers;
-                try {
-                    mappers = resourcePatternResolver.getResources(mapperLocation);
-                    resources.addAll(Arrays.asList(mappers));
-                } catch (IOException ignored) {
-
-                }
-            }
-        }
-
-        Resource[] mapperLocations = new Resource[resources.size()];
-        mapperLocations = resources.toArray(mapperLocations);
-        return mapperLocations;
-    }
-
     @Override
     public void destroy() throws Exception {
         if (this.watchService != null) {
@@ -122,10 +95,10 @@ public class MybatisXmlMapperAutoReLoader implements DisposableBean, Initializin
     /**
      * 指定映射配置文件.
      *
-     * @param mapperLocations
+     * @param mapperResources
      */
-    public void setMapperLocations(String[] mapperLocations) {
-        this.mapperLocations = mapperLocations;
+    public void setMapperResources(Resource[] mapperResources) {
+        this.mapperResources = mapperResources;
     }
 
 
