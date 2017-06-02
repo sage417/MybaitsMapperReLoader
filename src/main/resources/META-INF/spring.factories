@@ -1,0 +1,3 @@
+# AUTO CONFIG
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.lianjia.sh.mybatis.reload.spring.autoconfigure.MyBatisXmlMapperAutoReloaderAutoConfiguration

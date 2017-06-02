@@ -105,11 +105,6 @@ public class DirectoryWatchService {
                 return;
             }
 
-            // rescan
-            scanner.scan();
-            // reload
-            scanner.reloadAll();
-
             Path dir = keys.get(key);
             if (dir == null) {
                 LOGGER.error("WatchKey not recognized!!");
@@ -144,6 +139,11 @@ public class DirectoryWatchService {
                     }
                 }
             }
+
+            // rescan
+            scanner.scan();
+            // reload
+            scanner.reloadAll();
 
             // reset key and remove from set if directory no longer accessible
             boolean valid = key.reset();

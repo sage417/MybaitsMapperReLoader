@@ -2,7 +2,7 @@ package com.lianjia.sh.mybatis.reload;
 
 import com.lianjia.sh.mybatis.reload.filesystem.DirectoryWatchService;
 import com.lianjia.sh.mybatis.reload.scanner.AutoReloadScanner;
-import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -26,7 +26,9 @@ public class MybatisXmlMapperAutoReLoader {
     // 指定映射配置文件
     private Resource[] mapperResources;
     // 多数据源的场景使用
-    private SqlSessionFactory sqlSessionFactory;
+    // private SqlSessionFactory sqlSessionFactory;
+
+    private SqlSession sqlSession;
 
     public void init() throws Exception {
 
@@ -39,7 +41,7 @@ public class MybatisXmlMapperAutoReLoader {
         }
 
         // 配置扫描器.
-        final AutoReloadScanner scanner = new AutoReloadScanner(this.sqlSessionFactory, mapperResources);
+        final AutoReloadScanner scanner = new AutoReloadScanner(this.sqlSession, mapperResources);
 
         Path[] paths = Arrays.stream(mapperResources).map(mapperLocation -> {
             try {
@@ -84,12 +86,7 @@ public class MybatisXmlMapperAutoReLoader {
     }
 
 
-    /**
-     * 设置数据源.
-     *
-     * @param sqlSessionFactory
-     */
-    public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
-        this.sqlSessionFactory = sqlSessionFactory;
+    public void setSqlSession(SqlSession sqlSession) {
+        this.sqlSession = sqlSession;
     }
 }

@@ -3,7 +3,7 @@ package com.lianjia.sh.mybatis.reload.scanner;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.session.Configuration;
-import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -26,7 +26,7 @@ public class AutoReloadScanner {
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoReloadScanner.class);
 
     //
-    private SqlSessionFactory sqlSessionFactory;
+    private SqlSession sqlSession;
 
     // 需要扫描的包
     private Resource[] mapperLocations;
@@ -34,8 +34,8 @@ public class AutoReloadScanner {
     // 所有文件
     private Map<Resource, String> files = new ConcurrentHashMap<>();
 
-    public AutoReloadScanner(SqlSessionFactory sqlSessionFactory, Resource[] mapperLocations) {
-        this.sqlSessionFactory = sqlSessionFactory;
+    public AutoReloadScanner(SqlSession sqlSession, Resource[] mapperLocations) {
+        this.sqlSession = sqlSession;
         this.mapperLocations = mapperLocations;
     }
 
@@ -103,7 +103,7 @@ public class AutoReloadScanner {
      * @return
      */
     private Configuration getConfiguration() {
-        Configuration configuration = this.sqlSessionFactory.getConfiguration();
+        Configuration configuration = this.sqlSession.getConfiguration();
         removeConfig(configuration);
         return configuration;
     }

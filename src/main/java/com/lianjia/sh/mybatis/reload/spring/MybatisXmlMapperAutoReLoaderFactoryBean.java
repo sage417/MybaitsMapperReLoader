@@ -1,7 +1,7 @@
 package com.lianjia.sh.mybatis.reload.spring;
 
 import com.lianjia.sh.mybatis.reload.MybatisXmlMapperAutoReLoader;
-import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -26,7 +26,8 @@ public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<Myba
     // 指定映射配置文件
     private String[] mapperLocations;
     // 多数据源的场景使用
-    private SqlSessionFactory sqlSessionFactory;
+    // private SqlSessionFactory sqlSessionFactory;
+    private SqlSession sqlSession;
 
     private MybatisXmlMapperAutoReLoader mybatisXmlMapperAutoReLoader;
 
@@ -70,7 +71,7 @@ public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<Myba
     public void afterPropertiesSet() throws Exception {
         this.mybatisXmlMapperAutoReLoader = new MybatisXmlMapperAutoReLoader();
         this.mybatisXmlMapperAutoReLoader.setEnableAutoReload(this.enableAutoReload);
-        this.mybatisXmlMapperAutoReLoader.setSqlSessionFactory(this.sqlSessionFactory);
+        this.mybatisXmlMapperAutoReLoader.setSqlSession(this.sqlSession);
         this.mybatisXmlMapperAutoReLoader.setMapperResources(this.resolveMapperLocations());
         this.mybatisXmlMapperAutoReLoader.init();
     }
@@ -97,12 +98,12 @@ public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<Myba
         this.mapperLocations = mapperLocations;
     }
 
-    public SqlSessionFactory getSqlSessionFactory() {
-        return sqlSessionFactory;
+    public SqlSession getSqlSession() {
+        return sqlSession;
     }
 
-    public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
-        this.sqlSessionFactory = sqlSessionFactory;
+    public void setSqlSession(SqlSession sqlSession) {
+        this.sqlSession = sqlSession;
     }
 
     public void setResourcePatternResolver(ResourcePatternResolver resourcePatternResolver) {
