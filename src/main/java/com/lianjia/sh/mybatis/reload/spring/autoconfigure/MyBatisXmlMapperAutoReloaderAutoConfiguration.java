@@ -27,7 +27,7 @@ public class MyBatisXmlMapperAutoReloaderAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public MybatisXmlMapperAutoReLoaderFactoryBean sqlSessionTemplate(SqlSession sqlSession) {
+    public MybatisXmlMapperAutoReLoaderFactoryBean mybatisXmlMapperAutoReLoaderFactoryBean(SqlSession sqlSession) {
         MybatisXmlMapperAutoReLoaderFactoryBean reloader = new MybatisXmlMapperAutoReLoaderFactoryBean();
         reloader.setEnableAutoReload(true);
         reloader.setSqlSession(sqlSession);

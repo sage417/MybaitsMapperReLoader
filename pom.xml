@@ -50,21 +50,19 @@
 
     </dependencies>
 
-    <!--<distributionManagement>-->
-        <!--<repository>-->
-            <!--<id>nexus</id>-->
-            <!--<name>Internal Releases</name>-->
-            <!--<url>http://nexus.dooioo.cn/nexus/content/repositories/releases/</url>-->
-            <!--<uniqueVersion>false</uniqueVersion>-->
-        <!--</repository>-->
-
-        <!--<snapshotRepository>-->
-            <!--<id>nexus</id>-->
-            <!--<name>Internal Snapshots</name>-->
-            <!--<url>http://nexus.dooioo.cn/nexus/content/repositories/snapshots/</url>-->
-            <!--<uniqueVersion>false</uniqueVersion>-->
-        <!--</snapshotRepository>-->
-
-    <!--</distributionManagement>-->
+    <distributionManagement>
+        <repository>
+            <id>nexus</id>
+            <name>Internal Releases</name>
+            <url>http://nexus.dooioo.cn/repository/releases/</url>
+            <uniqueVersion>false</uniqueVersion>
+        </repository>
+        <snapshotRepository>
+            <id>nexus</id>
+            <name>Internal Snapshots</name>
+            <url>http://nexus.dooioo.cn/repository/snapshots/</url>
+            <uniqueVersion>false</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>
