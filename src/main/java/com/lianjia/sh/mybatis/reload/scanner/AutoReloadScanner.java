@@ -76,17 +76,6 @@ public class AutoReloadScanner {
                 ErrorContext.instance().reset();
             }
         }
-
-        for (Class<?> scanMapper : this.mapperRegistry.getMappers()) {
-            try {
-                this.mapperRegistry.addMapper(scanMapper);
-            } catch (Exception e) {
-                LOGGER.error("Error while adding the mapper '" + scanMapper.getName() + "' to configuration.", e);
-                throw new IllegalArgumentException(e);
-            } finally {
-                ErrorContext.instance().reset();
-            }
-        }
     }
 
     /**
