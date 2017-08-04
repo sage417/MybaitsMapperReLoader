@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class MybatisXmlMapperAutoReLoader {
 
@@ -43,7 +44,9 @@ public class MybatisXmlMapperAutoReLoader {
             LOGGER.error("fail to start mybatis mapper reload");
             throw e;
         }
-        Executors.newSingleThreadExecutor().submit(() -> watchService.processEvents());
+        Executors
+                .newSingleThreadScheduledExecutor()
+                .scheduleWithFixedDelay(() -> watchService.processEvents(), 5L, 1L, TimeUnit.SECONDS);
         LOGGER.info("启动mybatis自动热加载");
     }
 
@@ -54,7 +57,6 @@ public class MybatisXmlMapperAutoReLoader {
     }
 
     /**
-     *
      * @param enableAutoReload 是否启用热加载
      */
     public void setEnableAutoReload(boolean enableAutoReload) {

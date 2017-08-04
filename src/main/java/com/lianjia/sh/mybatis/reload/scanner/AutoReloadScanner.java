@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -82,7 +81,8 @@ public class AutoReloadScanner {
      * 重新加载所有文件.
      */
     public void reloadAll() {
-        StopWatch sw = StopWatch.createStarted();
+        StopWatch sw = new StopWatch();
+        sw.start();
 
         Configuration configuration = this.sqlSession.getConfiguration();
 
@@ -95,7 +95,7 @@ public class AutoReloadScanner {
         }
 
         sw.stop();
-        LOGGER.info("重新加载mybatis映射文件完成. 耗时{}ms", sw.getTime(TimeUnit.MILLISECONDS));
+        LOGGER.info("重新加载mybatis映射文件完成. 耗时{}ms", sw.getTime());
     }
 
 
