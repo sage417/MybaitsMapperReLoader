@@ -1,18 +1,10 @@
-package com.lianjia.sh.mybatis.reload.spring;
+package com.lianjia.sh.mybatis.reload.spring.factory;
 
-import com.lianjia.sh.mybatis.reload.MybatisXmlMapperAutoReLoader;
+import com.lianjia.sh.mybatis.reload.loader.MybatisXmlMapperAutoReLoader;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Package: com.lianjia.sh.mybatis.reload
@@ -23,15 +15,10 @@ public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<Myba
 
     // 是否启用热加载.
     private boolean enableAutoReload = true;
-    // 指定映射配置文件
-    private String[] mapperLocations;
-    // 多数据源的场景使用
-    // private SqlSessionFactory sqlSessionFactory;
+
     private SqlSession sqlSession;
 
     private MybatisXmlMapperAutoReLoader mybatisXmlMapperAutoReLoader;
-
-    private ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
 
     @Override
     public MybatisXmlMapperAutoReLoader getObject() throws Exception {
@@ -39,25 +26,6 @@ public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<Myba
             afterPropertiesSet();
         }
         return this.mybatisXmlMapperAutoReLoader;
-    }
-
-    private Resource[] resolveMapperLocations() {
-        List<Resource> resources = new ArrayList<>();
-        if (this.mapperLocations != null) {
-            for (String mapperLocation : this.mapperLocations) {
-                Resource[] mappers;
-                try {
-                    mappers = resourcePatternResolver.getResources(mapperLocation);
-                    resources.addAll(Arrays.asList(mappers));
-                } catch (IOException ignored) {
-
-                }
-            }
-        }
-
-        Resource[] mapperLocations = new Resource[resources.size()];
-        mapperLocations = resources.toArray(mapperLocations);
-        return mapperLocations;
     }
 
     @Override
@@ -72,7 +40,6 @@ public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<Myba
         this.mybatisXmlMapperAutoReLoader = new MybatisXmlMapperAutoReLoader();
         this.mybatisXmlMapperAutoReLoader.setEnableAutoReload(this.enableAutoReload);
         this.mybatisXmlMapperAutoReLoader.setSqlSession(this.sqlSession);
-        this.mybatisXmlMapperAutoReLoader.setMapperResources(this.resolveMapperLocations());
         this.mybatisXmlMapperAutoReLoader.init();
     }
 
@@ -90,14 +57,6 @@ public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<Myba
         this.enableAutoReload = enableAutoReload;
     }
 
-    public String[] getMapperLocations() {
-        return mapperLocations;
-    }
-
-    public void setMapperLocations(String[] mapperLocations) {
-        this.mapperLocations = mapperLocations;
-    }
-
     public SqlSession getSqlSession() {
         return sqlSession;
     }
@@ -106,7 +65,4 @@ public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<Myba
         this.sqlSession = sqlSession;
     }
 
-    public void setResourcePatternResolver(ResourcePatternResolver resourcePatternResolver) {
-        this.resourcePatternResolver = resourcePatternResolver;
-    }
 }

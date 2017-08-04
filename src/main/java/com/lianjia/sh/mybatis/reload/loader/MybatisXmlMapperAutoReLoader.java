@@ -1,19 +1,15 @@
-package com.lianjia.sh.mybatis.reload;
+package com.lianjia.sh.mybatis.reload.loader;
 
 import com.lianjia.sh.mybatis.reload.filesystem.DirectoryWatchService;
 import com.lianjia.sh.mybatis.reload.scanner.AutoReloadScanner;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Objects;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 public class MybatisXmlMapperAutoReLoader {
 
@@ -23,10 +19,6 @@ public class MybatisXmlMapperAutoReLoader {
 
     // 是否启用热加载.
     private boolean enableAutoReload = true;
-    // 指定映射配置文件
-    private Resource[] mapperResources;
-    // 多数据源的场景使用
-    // private SqlSessionFactory sqlSessionFactory;
 
     private SqlSession sqlSession;
 
@@ -41,23 +33,17 @@ public class MybatisXmlMapperAutoReLoader {
         }
 
         // 配置扫描器.
-        final AutoReloadScanner scanner = new AutoReloadScanner(this.sqlSession, mapperResources);
+        final AutoReloadScanner scanner = new AutoReloadScanner(this.sqlSession);
 
-        Path[] paths = Arrays.stream(mapperResources).map(mapperLocation -> {
-            try {
-                return Paths.get(mapperLocation.getURI()).getParent();
-            } catch (IOException e) {
-                return null;
-            }
-        }).filter(Objects::nonNull).collect(Collectors.toSet()).toArray(new Path[]{});
+        String root = StringUtils.getCommonPrefix(scanner.getMapperLocations().toArray(new String[]{}));
 
         try {
-            watchService = new DirectoryWatchService(true, paths);
+            watchService = new DirectoryWatchService(true, scanner, Paths.get(root));
         } catch (IOException e) {
             LOGGER.error("fail to start mybatis mapper reload");
             throw e;
         }
-        Executors.newSingleThreadExecutor().submit(() -> watchService.processEvents(scanner));
+        Executors.newSingleThreadExecutor().submit(() -> watchService.processEvents());
         LOGGER.info("启动mybatis自动热加载");
     }
 
@@ -74,15 +60,6 @@ public class MybatisXmlMapperAutoReLoader {
      */
     public void setEnableAutoReload(boolean enableAutoReload) {
         this.enableAutoReload = enableAutoReload;
-    }
-
-    /**
-     * 指定映射配置文件.
-     *
-     * @param mapperResources
-     */
-    public void setMapperResources(Resource[] mapperResources) {
-        this.mapperResources = mapperResources;
     }
 
 

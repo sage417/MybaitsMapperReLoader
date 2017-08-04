@@ -1,19 +1,26 @@
 package com.lianjia.sh.mybatis.reload.scanner;
 
+import com.google.common.base.Stopwatch;
+import org.apache.ibatis.binding.MapperProxyFactory;
+import org.apache.ibatis.binding.MapperRegistry;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
-import org.springframework.util.StopWatch;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 自动重载扫描器的具体实现
@@ -24,88 +31,93 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AutoReloadScanner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoReloadScanner.class);
+    private static final Pattern PATTERN = Pattern.compile("file \\[(.*?\\.xml)\\]");
 
     //
     private SqlSession sqlSession;
 
+    private MapperRegistry mapperRegistry;
+
     // 需要扫描的包
-    private Resource[] mapperLocations;
+    private List<String> mapperLocations;
 
-    // 所有文件
-    private Map<Resource, String> files = new ConcurrentHashMap<>();
-
-    public AutoReloadScanner(SqlSession sqlSession, Resource[] mapperLocations) {
+    public AutoReloadScanner(SqlSession sqlSession) throws Exception {
         this.sqlSession = sqlSession;
-        this.mapperLocations = mapperLocations;
+        this.mapperLocations = this.getLoadResources();
+        this.mapperRegistry = this.getMapperRegistry();
+    }
+
+    private List<String> getLoadResources() throws Exception {
+        final Set<String> loadedResources = this.reflectionReadConfiguration("loadedResources");
+
+        return this.mapperLocations = loadedResources
+                .stream()
+                .map(source -> {
+                    Matcher matcher
+                            = PATTERN.matcher(source);
+                    if (matcher.matches()) {
+                        return matcher.group(1);
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private void reload(Configuration configuration) throws Exception {
+        for (String source : mapperLocations) {
+            try {
+                XMLMapperBuilder xmlMapperBuilder = new XMLMapperBuilder(Files.newInputStream(Paths.get(source)), configuration, source, configuration.getSqlFragments());
+                xmlMapperBuilder.parse();
+                LOGGER.info("reloaded : {}", source);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to parse mapping resource: '" + source + "'", e);
+            } finally {
+                ErrorContext.instance().reset();
+            }
+        }
+
+        for (Class<?> scanMapper : this.mapperRegistry.getMappers()) {
+            try {
+                this.mapperRegistry.addMapper(scanMapper);
+            } catch (Exception e) {
+                LOGGER.error("Error while adding the mapper '" + scanMapper.getName() + "' to configuration.", e);
+                throw new IllegalArgumentException(e);
+            } finally {
+                ErrorContext.instance().reset();
+            }
+        }
     }
 
     /**
      * 重新加载所有文件.
      */
     public void reloadAll() {
-        StopWatch sw = new StopWatch("mybatis mapper auto reload");
-        sw.start();
-        Configuration configuration = getConfiguration();
-        for (Map.Entry<Resource, String> entry : files.entrySet()) {
-            Resource r = entry.getKey();
-            try {
-                XMLMapperBuilder xmlMapperBuilder = new XMLMapperBuilder(r.getInputStream(), configuration, r.toString(), configuration.getSqlFragments());
-                xmlMapperBuilder.parse();
-                LOGGER.info("reloaded : {}", r.toString());
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to parse mapping resource: '" + r + "'", e);
-            } finally {
-                ErrorContext.instance().reset();
-            }
-        }
-        sw.stop();
-//			LOGGER.info("重新加载mybatis映射文件完成.");
-        LOGGER.info(sw.shortSummary());
-    }
+        Stopwatch sw = Stopwatch.createStarted();
 
-    /**
-     * 获得文件的标记.
-     *
-     * @param r
-     * @return
-     */
-    private String getTag(Resource r) {
-        try {
-            StringBuilder sb = new StringBuilder();
-            sb.append(r.contentLength());
-            sb.append(r.lastModified());
-            return sb.toString();
-        } catch (IOException e) {
-            throw new RuntimeException("获取文件标记信息失败！r=" + r, e);
-        }
-    }
-
-    /**
-     * 开启扫描服务
-     */
-    public void scan() {
-        this.files.clear();
-        try {
-            if (this.mapperLocations != null) {
-                for (Resource r : mapperLocations) {
-                    String tag = getTag(r);
-                    files.put(r, tag);
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("初始化扫描服务失败！", e);
-        }
-    }
-
-    /**
-     * 获取配置信息，必须每次都重新获取，否则重新加载xml不起作用.
-     *
-     * @return
-     */
-    private Configuration getConfiguration() {
         Configuration configuration = this.sqlSession.getConfiguration();
-        removeConfig(configuration);
-        return configuration;
+
+        this.removeConfig(configuration);
+
+        try {
+            this.reload(configuration);
+        } catch (Exception e) {
+            LOGGER.error("加载mybaits xml失败", e);
+        }
+
+        sw.stop();
+        LOGGER.info("重新加载mybatis映射文件完成. 耗时%sms", sw.elapsed(TimeUnit.MILLISECONDS));
+    }
+
+
+    private <T> T reflectionReadConfiguration(String fieldName) throws Exception {
+        return this.reflectionReadField(Configuration.class, this.sqlSession.getConfiguration(), fieldName);
+    }
+
+    private <T> T reflectionReadField(Class<?> clazz, Object object, String fieldName) throws Exception {
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return (T) field.get(object);
     }
 
     /**
@@ -124,6 +136,7 @@ public class AutoReloadScanner {
             clearMap(classConfig, configuration, "keyGenerators");
             clearMap(classConfig, configuration, "sqlFragments");
             clearSet(classConfig, configuration, "loadedResources");
+            ((Map<Class<?>, MapperProxyFactory<?>>) this.reflectionReadField(MapperRegistry.class, this.mapperRegistry, "knownMappers")).clear();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -143,5 +156,13 @@ public class AutoReloadScanner {
         field.setAccessible(true);
         Set setConfig = (Set) field.get(configuration);
         setConfig.clear();
+    }
+
+    private MapperRegistry getMapperRegistry() throws Exception {
+        return this.reflectionReadConfiguration("mapperRegistry");
+    }
+
+    public List<String> getMapperLocations() {
+        return mapperLocations;
     }
 }

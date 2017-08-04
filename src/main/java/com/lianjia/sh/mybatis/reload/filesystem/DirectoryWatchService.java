@@ -25,6 +25,7 @@ public class DirectoryWatchService {
     private final WatchService watcher;
     private final Map<WatchKey, Path> keys;
     private final boolean recursive;
+    private final AutoReloadScanner scanner;
 
     @SuppressWarnings("unchecked")
     private static <T> WatchEvent<T> cast(WatchEvent<?> event) {
@@ -66,10 +67,11 @@ public class DirectoryWatchService {
     /**
      * Creates a WatchService and registers the given directory
      */
-    public DirectoryWatchService(boolean recursive, Path... paths) throws IOException {
+    public DirectoryWatchService(boolean recursive, AutoReloadScanner scanner, Path... paths) throws IOException {
         this.watcher = FileSystems.getDefault().newWatchService();
         this.keys = new HashMap<>();
         this.recursive = recursive;
+        this.scanner = scanner;
 
         for (Path path : paths) {
             if (recursive) {
@@ -94,7 +96,7 @@ public class DirectoryWatchService {
     /**
      * Process all events for keys queued to the watcher
      */
-    public void processEvents(AutoReloadScanner scanner) {
+    public void processEvents() {
         for (; ; ) {
 
             // wait for key to be signalled
@@ -110,6 +112,8 @@ public class DirectoryWatchService {
                 LOGGER.error("WatchKey not recognized!!");
                 continue;
             }
+
+            boolean reload = false;
 
             for (WatchEvent<?> event : key.pollEvents()) {
                 WatchEvent.Kind kind = event.kind();
@@ -138,12 +142,20 @@ public class DirectoryWatchService {
                         // ignore to keep sample readbale
                     }
                 }
+
+                if (kind == ENTRY_MODIFY
+                        && Files.isRegularFile(child, NOFOLLOW_LINKS)
+                        && !reload
+                        && this.scanner.getMapperLocations().contains(child.toString())) {
+                    reload = true;
+                }
             }
 
-            // rescan
-            scanner.scan();
-            // reload
-            scanner.reloadAll();
+
+            if (reload) {
+                // reload
+                scanner.reloadAll();
+            }
 
             // reset key and remove from set if directory no longer accessible
             boolean valid = key.reset();
