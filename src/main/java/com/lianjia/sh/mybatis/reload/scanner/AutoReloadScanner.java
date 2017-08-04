@@ -95,7 +95,7 @@ public class AutoReloadScanner {
         }
 
         sw.stop();
-        LOGGER.info("重新加载mybatis映射文件完成. 耗时%sms", sw.elapsed(TimeUnit.MILLISECONDS));
+        LOGGER.info("重新加载mybatis映射文件完成. 耗时{}ms", sw.elapsed(TimeUnit.MILLISECONDS));
     }
 
 
