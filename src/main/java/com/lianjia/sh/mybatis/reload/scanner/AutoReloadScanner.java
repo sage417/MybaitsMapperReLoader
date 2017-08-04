@@ -26,15 +26,15 @@ import java.util.stream.Collectors;
  * 自动重载扫描器的具体实现
  *
  * @author thomas
- * @date Mar 31, 2016 6:59:34 PM
+ * @since Mar 31, 2016 6:59:34 PM
  */
 public class AutoReloadScanner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoReloadScanner.class);
-    private static final Pattern PATTERN = Pattern.compile("file \\[(.*?\\.xml)\\]");
+    private static final Pattern PATTERN = Pattern.compile("file \\[(.*?\\.xml)]");
 
     //
-    private SqlSession sqlSession;
+    private final SqlSession sqlSession;
 
     private MapperRegistry mapperRegistry;
 
@@ -64,7 +64,7 @@ public class AutoReloadScanner {
                 .collect(Collectors.toList());
     }
 
-    private void reload(Configuration configuration) throws Exception {
+    private void reload(Configuration configuration) throws RuntimeException {
         for (String source : mapperLocations) {
             try {
                 XMLMapperBuilder xmlMapperBuilder = new XMLMapperBuilder(Files.newInputStream(Paths.get(source)), configuration, source, configuration.getSqlFragments());
@@ -91,7 +91,7 @@ public class AutoReloadScanner {
         try {
             this.reload(configuration);
         } catch (Exception e) {
-            LOGGER.error("加载mybaits xml失败", e);
+            LOGGER.error("加载mybatis xml失败", e);
         }
 
         sw.stop();
@@ -112,8 +112,7 @@ public class AutoReloadScanner {
     /**
      * 删除不必要的配置项.
      *
-     * @param configuration
-     * @throws Exception
+     * @param configuration sqlsession configuartion
      */
     private void removeConfig(Configuration configuration) {
         try {

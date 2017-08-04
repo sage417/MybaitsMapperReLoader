@@ -54,9 +54,8 @@ public class MybatisXmlMapperAutoReLoader {
     }
 
     /**
-     * 是否启用热加载.
      *
-     * @param enableAutoReload
+     * @param enableAutoReload 是否启用热加载
      */
     public void setEnableAutoReload(boolean enableAutoReload) {
         this.enableAutoReload = enableAutoReload;

@@ -35,7 +35,7 @@ public class DirectoryWatchService {
     /**
      * Register the given directory with the WatchService
      */
-    public void register(Path dir) throws IOException {
+    private void register(Path dir) throws IOException {
         WatchKey key = dir.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
         Path prev = keys.get(key);
         if (prev == null) {
@@ -52,7 +52,7 @@ public class DirectoryWatchService {
      * Register the given directory, and all its sub-directories, with the
      * WatchService.
      */
-    public void registerAll(final Path start) throws IOException {
+    private void registerAll(final Path start) throws IOException {
         // register directory and sub-directories
         Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
             @Override
@@ -139,7 +139,7 @@ public class DirectoryWatchService {
                             registerAll(child);
                         }
                     } catch (IOException x) {
-                        // ignore to keep sample readbale
+                        // ignore to keep sample readable
                     }
                 }
 

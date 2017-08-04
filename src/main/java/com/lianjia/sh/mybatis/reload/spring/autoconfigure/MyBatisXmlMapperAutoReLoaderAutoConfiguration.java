@@ -22,23 +22,27 @@ import javax.sql.DataSource;
  * Date: 2017/1/10
  */
 @Configuration
-@EnableConfigurationProperties(MybatisXmlMapperAutoReloaderProperties.class)
+@EnableConfigurationProperties(MybatisXmlMapperAutoReLoaderProperties.class)
 @ConditionalOnClass({SqlSessionFactory.class, SqlSessionFactoryBean.class})
 @ConditionalOnBean({DataSource.class})
 @AutoConfigureAfter(DataSourceAutoConfiguration.class)
-public class MyBatisXmlMapperAutoReloaderAutoConfiguration {
+public class MyBatisXmlMapperAutoReLoaderAutoConfiguration {
+
+    private MybatisXmlMapperAutoReLoaderProperties mybatisXmlMapperAutoReloaderProperties;
 
     @Autowired
-    private MybatisXmlMapperAutoReloaderProperties mybatisXmlMapperAutoReloaderProperties;
+    public void setMybatisXmlMapperAutoReLoaderProperties(MybatisXmlMapperAutoReLoaderProperties mybatisXmlMapperAutoReloaderProperties) {
+        this.mybatisXmlMapperAutoReloaderProperties = mybatisXmlMapperAutoReloaderProperties;
+    }
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnBean({SqlSession.class})
     public MybatisXmlMapperAutoReLoaderFactoryBean mybatisXmlMapperAutoReLoaderFactoryBean(SqlSession sqlSession) {
-        MybatisXmlMapperAutoReLoaderFactoryBean reloader = new MybatisXmlMapperAutoReLoaderFactoryBean();
-        reloader.setEnableAutoReload(this.mybatisXmlMapperAutoReloaderProperties.isEnabled());
-        reloader.setSqlSession(sqlSession);
-        return reloader;
+        MybatisXmlMapperAutoReLoaderFactoryBean reLoader = new MybatisXmlMapperAutoReLoaderFactoryBean();
+        reLoader.setEnableAutoReload(this.mybatisXmlMapperAutoReloaderProperties.isEnabled());
+        reLoader.setSqlSession(sqlSession);
+        return reLoader;
     }
 
 }

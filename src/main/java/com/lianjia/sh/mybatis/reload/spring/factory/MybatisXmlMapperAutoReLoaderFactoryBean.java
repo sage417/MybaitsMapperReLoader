@@ -57,10 +57,6 @@ public class MybatisXmlMapperAutoReLoaderFactoryBean implements FactoryBean<Myba
         this.enableAutoReload = enableAutoReload;
     }
 
-    public SqlSession getSqlSession() {
-        return sqlSession;
-    }
-
     public void setSqlSession(SqlSession sqlSession) {
         this.sqlSession = sqlSession;
     }
