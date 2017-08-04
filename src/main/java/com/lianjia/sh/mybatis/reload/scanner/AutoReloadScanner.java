@@ -1,6 +1,6 @@
 package com.lianjia.sh.mybatis.reload.scanner;
 
-import com.google.common.base.Stopwatch;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.ibatis.binding.MapperProxyFactory;
 import org.apache.ibatis.binding.MapperRegistry;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
@@ -82,7 +82,7 @@ public class AutoReloadScanner {
      * 重新加载所有文件.
      */
     public void reloadAll() {
-        Stopwatch sw = Stopwatch.createStarted();
+        StopWatch sw = StopWatch.createStarted();
 
         Configuration configuration = this.sqlSession.getConfiguration();
 
@@ -95,7 +95,7 @@ public class AutoReloadScanner {
         }
 
         sw.stop();
-        LOGGER.info("重新加载mybatis映射文件完成. 耗时{}ms", sw.elapsed(TimeUnit.MILLISECONDS));
+        LOGGER.info("重新加载mybatis映射文件完成. 耗时{}ms", sw.getTime(TimeUnit.MILLISECONDS));
     }
 
 

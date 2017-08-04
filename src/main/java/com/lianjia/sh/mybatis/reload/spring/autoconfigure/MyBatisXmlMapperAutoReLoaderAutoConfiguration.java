@@ -3,7 +3,6 @@ package com.lianjia.sh.mybatis.reload.spring.autoconfigure;
 import com.lianjia.sh.mybatis.reload.spring.factory.MybatisXmlMapperAutoReLoaderFactoryBean;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.SqlSessionFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -23,7 +22,7 @@ import javax.sql.DataSource;
  */
 @Configuration
 @EnableConfigurationProperties(MybatisXmlMapperAutoReLoaderProperties.class)
-@ConditionalOnClass({SqlSessionFactory.class, SqlSessionFactoryBean.class})
+@ConditionalOnClass({SqlSessionFactory.class})
 @ConditionalOnBean({DataSource.class})
 @AutoConfigureAfter(DataSourceAutoConfiguration.class)
 public class MyBatisXmlMapperAutoReLoaderAutoConfiguration {
